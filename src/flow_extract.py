@@ -3,7 +3,7 @@ import sys
 import dpkt
 import datetime
 import socket
-
+from tqdm import tqdm
 
 workspace=sys.path[0]
 
@@ -48,7 +48,7 @@ def get_flow_id(ip) -> str:
 # 按照五元组进行分流
 def quintuple_split(pcap:dpkt.pcap.Reader) -> list:
     flows = {}
-    for timestamp, buf in pcap:
+    for timestamp, buf in tqdm(pcap):
         try:
             eth = dpkt.ethernet.Ethernet(buf)
         except Exception as e:
