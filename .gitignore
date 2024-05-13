@@ -1,0 +1,4 @@
+#ingnore data and pcap file
+data/
+*.pcap
+.vscode
