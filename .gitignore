@@ -3,3 +3,5 @@ data/
 *.pcap
 .vscode
 testdata/
+label/
+output/
