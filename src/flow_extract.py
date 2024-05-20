@@ -12,27 +12,29 @@ workspace=sys.path[0]
 class flow:
     def __init__(self, flow_id, timestamp, ip) -> None:
         self.flow_id = flow_id
-        self.pkts = []                                  # packet len 序列
+        self.pkts = []                                  # 包长度序列
         self.pkts.append(ip.len)
         self.count = 1                                  # packet总数计数器
         self.start_time = timestamp
-        self.end_time = timestamp  # 流起始时间和结束时间
+        self.end_time = timestamp                       # 流起始时间和结束时间
         self.timestamp = []                             # 每个packet 时间戳
         self.timestamp.append(timestamp)
-        self.pkt_len_max = ip.len
-        self.pkt_len_min  = ip.len
-        self.pkt_len_avg = ip.len
-        self.pkt_len_std = ip.len
-        self.IPD_max = 0
-        self.IPD_min = 0
-        self.IPD_avg = 0
-        self.IPD_std = 0
-        self.IPD = []
+        self.pkt_len_max = ip.len                       # 包长度最大值
+        self.pkt_len_min  = ip.len                      # 包长度最小值
+        self.pkt_len_sum = ip.len                       # 包长度总和
+        self.pkt_len_avg = ip.len                       # 包长度平均值
+        self.pkt_len_std = ip.len                       # 包长度标准差
+        self.IPD_max = 0                                # 包间间隔最大
+        self.IPD_min = 0                                # 包间间隔最小
+        self.IPD_avg = 0                                # 包间间隔平均
+        self.IPD_std = 0                                # 包间间隔标准差
+        self.IPD = []                                   # 包间间隔序列
 
     # TODO：加入新packet，更新流中的特征数据
     def add(self, timestamp, ip) -> None:
         self.pkt_len_max = ip.len if ip.len >= self.pkt_len_max else self.pkt_len_max
         self.pkt_len_min = ip.len if ip.len <= self.pkt_len_min else self.pkt_len_min
+        self.pkt_len_sum += ip.len
 
         self.pkts.append(ip.len)
         self.end_time = timestamp
@@ -40,7 +42,12 @@ class flow:
     
     #TODO: 加入输出功能
     def __str__(self) -> str:
-        return "{},{},{},{}".format(self.flow_id, round((self.end_time - self.start_time),2), self.pkt_len_max, self.pkt_len_min)
+        return "{},{},{},{},{},{}".format(self.flow_id, 
+                                       round((self.end_time - self.start_time),2), 
+                                       self.count , 
+                                       round((self.pkt_len_sum/self.count), 2),
+                                       self.pkt_len_max, 
+                                       self.pkt_len_min)
     
 
 
@@ -112,6 +119,8 @@ def main(input, output, label):
 
     all_flows = []
     file_flows =[]
+
+
     for file in pcap_filelist:
         try:
             file_flows = get_flows(file)
@@ -126,20 +135,18 @@ def main(input, output, label):
         all_flows += file_flows
 
     with open(output, "w+", encoding="utf-8") as f:
-        for flow in all_flows:
+        for flow in file_flows:
             print(flow,file = f)
-    
 
 
 
 
 if __name__ == "__main__":
     #参数：pcap目录路径 csv输出文件
+    _ = sys.argv[0]
     input_dir = sys.argv[1]
     output_file = sys.argv[2]
     label = ""
-    try:
+    if len(sys.argv) >= 4:
         label = sys.argv[3]
-    except Exception as e:
-        print(e + "No Label")
     main(input_dir, output_file, label)
